@@ -96,23 +96,20 @@ export class StatsDatabase {
     this.revision++;
   }
 
-  async addPlayRecord(record: PlayRecord): Promise<void> {
+  addPlayRecord(record: PlayRecord): void {
     this.data.playRecords.push(record);
     this.markDirty();
   }
 
   /** Bulk insert for synced/imported plays; restores chronological order. */
-  async addPlayRecords(records: PlayRecord[]): Promise<void> {
+  addPlayRecords(records: PlayRecord[]): void {
     if (!records.length) return;
     this.data.playRecords.push(...records);
     this.data.playRecords.sort((a, b) => a.timestamp - b.timestamp);
     this.markDirty();
   }
 
-  async getPlayRecords(
-    startDate?: number,
-    endDate?: number,
-  ): Promise<PlayRecord[]> {
+  getPlayRecords(startDate?: number, endDate?: number): PlayRecord[] {
     let records = this.data.playRecords;
     if (startDate !== undefined || endDate !== undefined) {
       records = records.filter(
@@ -124,12 +121,12 @@ export class StatsDatabase {
     return records;
   }
 
-  async updateStreak(date: string, streak: number): Promise<void> {
+  updateStreak(date: string, streak: number): void {
     this.data.streak = { lastListenDate: date, currentStreak: streak };
     this.markDirty();
   }
 
-  async getStreak(): Promise<StreakData | null> {
+  getStreak(): StreakData | null {
     return this.data.streak;
   }
 
@@ -143,7 +140,7 @@ export class StatsDatabase {
     this.markDirty();
   }
 
-  async exportData(): Promise<string> {
+  exportData(): string {
     const payload: ExportPayload = {
       version: 2,
       exportDate: Date.now(),

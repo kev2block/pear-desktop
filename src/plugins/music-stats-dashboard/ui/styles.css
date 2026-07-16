@@ -1,7 +1,11 @@
 /* Music Stats Dashboard
    Design language: native YouTube Music dark — near-black surfaces, hairline
    borders, one warm accent (#ff4b3e, validated for contrast on dark), big
-   confident numerals, no glassmorphism. */
+   confident numerals, no glassmorphism.
+
+   All sizes are in px (not rem): the host page manipulates the root font
+   size, which must never scale this overlay. Fluid sizing comes from
+   clamp(..., vw, ...) so everything grows with the window. */
 
 .music-stats-overlay {
   --msd-accent: #ff4b3e;
@@ -21,7 +25,7 @@
   z-index: 10000;
   background: var(--msd-bg);
   color: var(--msd-text);
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.5;
   overflow-y: auto;
   animation: msd-fade-in 0.25s ease;
@@ -43,8 +47,8 @@ body.music-stats-overlay-open {
 
 /* Shared close button */
 .overlay-close {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -71,21 +75,21 @@ body.music-stats-overlay-open {
 }
 
 .dashboard-container {
-  width: min(1160px, 100%);
+  width: min(1400px, 96%);
   margin: 0 auto;
-  padding: 0 28px 64px;
+  padding: 0 12px 72px;
 }
 
 .dashboard-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  gap: 16px;
+  gap: 18px;
   flex-wrap: wrap;
   position: sticky;
   top: 0;
   z-index: 2;
-  padding: 24px 0 16px;
+  padding: 28px 0 18px;
   background: linear-gradient(
     to bottom,
     var(--msd-bg) 82%,
@@ -94,16 +98,16 @@ body.music-stats-overlay-open {
 }
 
 .dashboard-eyebrow {
-  font-size: 0.72rem;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--msd-accent);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .dashboard-title {
-  font-size: 1.9rem;
+  font-size: clamp(28px, 2.6vw, 38px);
   font-weight: 700;
   letter-spacing: -0.02em;
   margin: 0;
@@ -113,26 +117,26 @@ body.music-stats-overlay-open {
 .dashboard-controls {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
 /* Range tabs — styled like native YTM chips: active chip is white on black */
 .range-tabs {
   display: inline-flex;
   gap: 6px;
-  padding: 4px;
+  padding: 5px;
   border-radius: 999px;
   background: var(--msd-surface);
   border: 1px solid var(--msd-border);
 }
 
 .range-tab {
-  padding: 7px 14px;
+  padding: 9px 18px;
   border: none;
   border-radius: 999px;
   background: transparent;
   color: var(--msd-text-2);
-  font-size: 0.82rem;
+  font-size: 14px;
   font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
@@ -154,34 +158,34 @@ body.music-stats-overlay-open {
 .dashboard-body {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
 }
 
 /* Stat tiles */
 .stat-tiles {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
 }
 
 .stat-tile {
   background: var(--msd-surface);
   border: 1px solid var(--msd-border);
-  border-radius: 12px;
-  padding: 16px 18px;
+  border-radius: 14px;
+  padding: 20px 22px;
 }
 
 .stat-tile-label {
-  font-size: 0.72rem;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--msd-text-3);
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .stat-tile-value {
-  font-size: 1.7rem;
+  font-size: clamp(26px, 2.2vw, 36px);
   font-weight: 700;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
@@ -190,23 +194,23 @@ body.music-stats-overlay-open {
 }
 
 .stat-tile-sub {
-  font-size: 0.78rem;
+  font-size: 13px;
   color: var(--msd-text-2);
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 /* Cards */
 .dashboard-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
+  gap: 24px;
 }
 
 .dashboard-card {
   background: var(--msd-surface);
   border: 1px solid var(--msd-border);
-  border-radius: 14px;
-  padding: 20px 22px;
+  border-radius: 16px;
+  padding: 24px 26px;
   min-width: 0;
 }
 
@@ -215,17 +219,17 @@ body.music-stats-overlay-open {
 }
 
 .card-title {
-  font-size: 1rem;
+  font-size: 18px;
   font-weight: 600;
-  margin: 0 0 16px;
+  margin: 0 0 18px;
   color: var(--msd-text);
 }
 
 .card-title-sub {
-  font-size: 0.78rem;
+  font-size: 13px;
   font-weight: 400;
   color: var(--msd-text-3);
-  margin-left: 8px;
+  margin-left: 10px;
 }
 
 /* Ranked lists */
@@ -239,17 +243,17 @@ body.music-stats-overlay-open {
 
 .msd-list.two-col {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  column-gap: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  column-gap: 28px;
 }
 
 .list-row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 9px 8px;
-  margin: 0 -8px;
-  border-radius: 10px;
+  gap: 14px;
+  padding: 11px 10px;
+  margin: 0 -10px;
+  border-radius: 12px;
   min-width: 0;
   transition: background 0.15s ease;
 }
@@ -259,18 +263,18 @@ body.music-stats-overlay-open {
 }
 
 .list-rank {
-  width: 20px;
+  width: 24px;
   flex-shrink: 0;
   text-align: center;
-  font-size: 0.85rem;
+  font-size: 15px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--msd-text-3);
 }
 
 .list-thumb {
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
@@ -279,10 +283,11 @@ body.music-stats-overlay-open {
   background: var(--msd-surface-2);
   color: var(--msd-text-2);
   font-weight: 600;
+  font-size: 17px;
 }
 
 .list-thumb.square {
-  border-radius: 8px;
+  border-radius: 10px;
 }
 
 .list-thumb.round {
@@ -303,7 +308,7 @@ body.music-stats-overlay-open {
 }
 
 .list-title {
-  font-size: 0.92rem;
+  font-size: 16px;
   font-weight: 500;
   color: var(--msd-text);
   overflow: hidden;
@@ -312,7 +317,7 @@ body.music-stats-overlay-open {
 }
 
 .list-sub {
-  font-size: 0.8rem;
+  font-size: 14px;
   color: var(--msd-text-2);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -328,21 +333,21 @@ body.music-stats-overlay-open {
 }
 
 .list-stat-strong {
-  font-size: 0.85rem;
+  font-size: 15px;
   font-weight: 600;
   color: var(--msd-text);
   white-space: nowrap;
 }
 
 .list-stat-sub {
-  font-size: 0.75rem;
+  font-size: 13px;
   color: var(--msd-text-3);
   white-space: nowrap;
 }
 
 .list-play {
-  width: 32px;
-  height: 32px;
+  width: 38px;
+  height: 38px;
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
@@ -434,9 +439,9 @@ body.music-stats-overlay-open {
   background: #232326;
   border: 1px solid var(--msd-border-strong);
   color: var(--msd-text);
-  font-size: 0.78rem;
+  font-size: 13px;
   font-variant-numeric: tabular-nums;
-  padding: 5px 10px;
+  padding: 6px 12px;
   border-radius: 8px;
   pointer-events: none;
   white-space: nowrap;
@@ -450,9 +455,9 @@ body.music-stats-overlay-open {
 }
 
 .msd-chart-empty {
-  padding: 32px 0;
+  padding: 36px 0;
   text-align: center;
-  font-size: 0.88rem;
+  font-size: 15px;
   color: var(--msd-text-3);
 }
 
@@ -461,8 +466,8 @@ body.music-stats-overlay-open {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 80px 24px;
+  gap: 12px;
+  padding: 90px 24px;
   text-align: center;
   color: var(--msd-text-2);
 }
@@ -470,19 +475,21 @@ body.music-stats-overlay-open {
 .msd-empty-state svg {
   color: var(--msd-accent);
   opacity: 0.8;
+  width: 56px;
+  height: 56px;
 }
 
 .msd-empty-state h2 {
-  margin: 6px 0 0;
-  font-size: 1.3rem;
+  margin: 8px 0 0;
+  font-size: 24px;
   font-weight: 600;
   color: var(--msd-text);
 }
 
 .msd-empty-state p {
   margin: 0;
-  max-width: 380px;
-  font-size: 0.9rem;
+  max-width: 420px;
+  font-size: 16px;
 }
 
 /* ─── Wrapped ────────────────────────────────────────────────────────── */
@@ -501,10 +508,10 @@ body.music-stats-overlay-open {
 }
 
 .wrapped-container {
-  max-width: 720px;
+  max-width: 820px;
   width: 92%;
   margin: 0 auto;
-  padding: 72px 20px 130px;
+  padding: 80px 20px 150px;
   opacity: 0;
   transform: translateY(16px);
   transition:
@@ -522,42 +529,42 @@ body.music-stats-overlay-open {
 }
 
 .wrapped-eyebrow {
-  font-size: 0.72rem;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--msd-accent);
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
 
 .wrapped-title {
-  font-size: clamp(2.6rem, 7vw, 4rem);
+  font-size: clamp(44px, 7vw, 72px);
   font-weight: 800;
   letter-spacing: -0.03em;
   line-height: 1.05;
-  margin: 0 0 20px;
+  margin: 0 0 22px;
   color: var(--msd-text);
 }
 
 .wrapped-subtitle {
-  font-size: 1.1rem;
+  font-size: 19px;
   color: var(--msd-text-2);
   margin: 0;
 }
 
 .wrapped-heading {
-  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  font-size: clamp(28px, 4vw, 40px);
   font-weight: 700;
   letter-spacing: -0.02em;
-  margin: 0 0 20px;
+  margin: 0 0 22px;
   color: var(--msd-text);
 }
 
 .wrapped-text {
-  font-size: 1.05rem;
+  font-size: 18px;
   color: var(--msd-text-2);
-  margin: 14px auto;
-  max-width: 480px;
+  margin: 16px auto;
+  max-width: 540px;
   line-height: 1.6;
 }
 
@@ -566,53 +573,53 @@ body.music-stats-overlay-open {
 }
 
 .wrapped-stat-large {
-  font-size: clamp(4rem, 12vw, 6.5rem);
+  font-size: clamp(72px, 12vw, 124px);
   font-weight: 800;
   letter-spacing: -0.04em;
   line-height: 1;
-  margin: 24px 0 8px;
+  margin: 28px 0 10px;
   font-variant-numeric: tabular-nums;
   color: var(--msd-text);
 }
 
 .wrapped-label {
-  font-size: 0.85rem;
+  font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--msd-text-3);
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 /* Chronotype timeline */
 .wrapped-chronotype {
-  margin-top: 28px;
+  margin-top: 32px;
 }
 
 .chronotype-timeline {
   display: grid;
   grid-template-columns: repeat(24, 1fr);
-  gap: 3px;
+  gap: 4px;
   align-items: end;
-  padding: 16px 12px 8px;
+  padding: 20px 14px 10px;
   background: var(--msd-surface);
   border: 1px solid var(--msd-border);
-  border-radius: 14px;
+  border-radius: 16px;
 }
 
 .chronotype-bar {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .chronotype-bar-inner {
   width: 100%;
-  max-width: 14px;
+  max-width: 18px;
   height: var(--h);
   background: rgba(255, 75, 62, 0.35);
-  border-radius: 3px 3px 0 0;
+  border-radius: 4px 4px 0 0;
 }
 
 .chronotype-bar.peak .chronotype-bar-inner {
@@ -620,8 +627,8 @@ body.music-stats-overlay-open {
 }
 
 .chronotype-label {
-  font-size: 0.58rem;
-  height: 0.8em;
+  font-size: 10px;
+  height: 12px;
   color: var(--msd-text-3);
   font-variant-numeric: tabular-nums;
 }
@@ -630,12 +637,12 @@ body.music-stats-overlay-open {
 .wrapped-aura {
   display: flex;
   justify-content: center;
-  margin: 8px 0 24px;
+  margin: 10px 0 28px;
 }
 
 .aura-orb {
-  width: 180px;
-  height: 180px;
+  width: clamp(170px, 22vw, 220px);
+  height: clamp(170px, 22vw, 220px);
   border-radius: 50%;
   background: radial-gradient(
     circle at 32% 30%,
@@ -682,17 +689,17 @@ body.music-stats-overlay-open {
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: 14px;
-  margin: 8px auto 28px;
-  max-width: 460px;
+  gap: 16px;
+  margin: 10px auto 32px;
+  max-width: 520px;
 }
 
 .wrapped-flip {
   display: none;
   background: var(--msd-surface);
   border: 1px solid var(--msd-border);
-  padding: 26px 20px;
-  border-radius: 16px;
+  padding: 30px 24px;
+  border-radius: 18px;
 }
 
 .wrapped-flip.active {
@@ -701,7 +708,7 @@ body.music-stats-overlay-open {
 }
 
 .flip-front {
-  font-size: 0.75rem;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -709,26 +716,27 @@ body.music-stats-overlay-open {
 }
 
 .flip-back {
-  font-size: 1.5rem;
+  font-size: 28px;
   font-weight: 700;
   letter-spacing: -0.01em;
   color: var(--msd-text);
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
 .flip-sub {
   color: var(--msd-text-2);
-  margin-top: 6px;
-  font-size: 0.85rem;
+  margin-top: 8px;
+  font-size: 15px;
 }
 
 .obsessions-nav {
-  width: 38px;
-  height: 38px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   border: 1px solid var(--msd-border-strong);
   background: transparent;
   color: var(--msd-text);
+  font-size: 16px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -747,33 +755,34 @@ body.music-stats-overlay-open {
 
 /* Peak-day calendar */
 .wrapped-calendar-block {
-  max-width: 340px;
+  max-width: 380px;
   margin: 0 auto;
 }
 
 .wrapped-calendar-title {
   font-weight: 600;
+  font-size: 17px;
   color: var(--msd-text);
 }
 
 .wrapped-calendar-sub {
   color: var(--msd-text-2);
-  font-size: 0.85rem;
-  margin: 2px 0 12px;
+  font-size: 15px;
+  margin: 3px 0 14px;
 }
 
 .wrapped-calendar {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
+  gap: 5px;
 }
 
 .calendar-day {
   background: var(--msd-surface);
   border: 1px solid var(--msd-border);
-  border-radius: 7px;
-  padding: 6px 0;
-  font-size: 0.72rem;
+  border-radius: 8px;
+  padding: 8px 0;
+  font-size: 12px;
   font-variant-numeric: tabular-nums;
   color: var(--msd-text-2);
 }
@@ -793,22 +802,22 @@ body.music-stats-overlay-open {
 /* Honest stats */
 .wrapped-honest {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 14px;
-  max-width: 560px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  max-width: 640px;
   margin: 0 auto;
 }
 
 .honest-card {
   background: var(--msd-surface);
   border: 1px solid var(--msd-border);
-  padding: 20px;
-  border-radius: 16px;
+  padding: 24px;
+  border-radius: 18px;
   text-align: left;
 }
 
 .honest-label {
-  font-size: 0.72rem;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -816,34 +825,34 @@ body.music-stats-overlay-open {
 }
 
 .honest-value {
-  font-size: 1.35rem;
+  font-size: 25px;
   font-weight: 700;
   letter-spacing: -0.01em;
   color: var(--msd-text);
-  margin-top: 8px;
+  margin-top: 10px;
   overflow-wrap: break-word;
 }
 
 .honest-sub {
   color: var(--msd-text-2);
-  margin-top: 4px;
-  font-size: 0.85rem;
+  margin-top: 6px;
+  font-size: 15px;
 }
 
 /* Hall of fame */
 .wrapped-artist-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 14px;
+  gap: 16px;
   justify-content: center;
 }
 
 .artist-card {
   background: var(--msd-surface);
   border: 1px solid var(--msd-border);
-  border-radius: 16px;
-  padding: 18px 14px;
-  width: 150px;
+  border-radius: 18px;
+  padding: 22px 16px;
+  width: clamp(150px, 16vw, 180px);
 }
 
 .artist-card.first {
@@ -856,7 +865,7 @@ body.music-stats-overlay-open {
 }
 
 .artist-rank {
-  font-size: 0.75rem;
+  font-size: 13px;
   font-weight: 600;
   color: var(--msd-text-3);
   font-variant-numeric: tabular-nums;
@@ -867,16 +876,16 @@ body.music-stats-overlay-open {
 }
 
 .artist-avatar {
-  width: 72px;
-  height: 72px;
+  width: 84px;
+  height: 84px;
   border-radius: 50%;
-  margin: 12px auto;
+  margin: 14px auto;
   overflow: hidden;
   background: var(--msd-surface-2);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.6rem;
+  font-size: 30px;
   font-weight: 600;
   color: var(--msd-text-2);
 }
@@ -889,7 +898,7 @@ body.music-stats-overlay-open {
 
 .artist-name {
   font-weight: 600;
-  font-size: 0.92rem;
+  font-size: 16px;
   color: var(--msd-text);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -898,8 +907,8 @@ body.music-stats-overlay-open {
 
 .artist-minutes {
   color: var(--msd-text-2);
-  font-size: 0.8rem;
-  margin-top: 2px;
+  font-size: 14px;
+  margin-top: 3px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -907,40 +916,41 @@ body.music-stats-overlay-open {
 .wrapped-songlist {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  max-width: 560px;
+  gap: 12px;
+  max-width: 640px;
   margin: 0 auto;
 }
 
 .song-row {
   display: grid;
-  grid-template-columns: 36px 48px 1fr auto auto;
-  gap: 12px;
+  grid-template-columns: 40px 56px 1fr auto auto;
+  gap: 14px;
   align-items: center;
   background: var(--msd-surface);
   border: 1px solid var(--msd-border);
-  border-radius: 14px;
-  padding: 10px 14px;
+  border-radius: 16px;
+  padding: 12px 18px;
   text-align: left;
 }
 
 .song-rank {
-  font-size: 0.9rem;
+  font-size: 16px;
   font-weight: 700;
   color: var(--msd-text-3);
   font-variant-numeric: tabular-nums;
 }
 
 .song-art {
-  width: 48px;
-  height: 48px;
-  border-radius: 10px;
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
   overflow: hidden;
   background: var(--msd-surface-2);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 600;
+  font-size: 19px;
   color: var(--msd-text-2);
 }
 
@@ -956,7 +966,7 @@ body.music-stats-overlay-open {
 
 .song-title {
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 17px;
   color: var(--msd-text);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -965,27 +975,27 @@ body.music-stats-overlay-open {
 
 .song-artist {
   color: var(--msd-text-2);
-  font-size: 0.82rem;
+  font-size: 14px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .song-plays {
-  font-size: 0.8rem;
+  font-size: 14px;
   color: var(--msd-text-2);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
 .song-play {
-  padding: 7px 14px;
+  padding: 9px 18px;
   border-radius: 999px;
   border: 1px solid var(--msd-border-strong);
   background: transparent;
   color: var(--msd-text);
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: 14px;
   font-weight: 600;
   transition:
     background 0.15s ease,
@@ -1002,7 +1012,7 @@ body.music-stats-overlay-open {
 .wrapped-anthem-final {
   display: grid;
   grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
-  gap: 32px;
+  gap: 40px;
   align-items: center;
   text-align: left;
 }
@@ -1011,7 +1021,7 @@ body.music-stats-overlay-open {
   width: 100%;
   aspect-ratio: 1;
   object-fit: cover;
-  border-radius: 18px;
+  border-radius: 20px;
   box-shadow:
     0 24px 60px rgba(0, 0, 0, 0.55),
     0 0 0 1px var(--msd-border);
@@ -1020,7 +1030,7 @@ body.music-stats-overlay-open {
 .anthem-placeholder {
   width: 100%;
   aspect-ratio: 1;
-  border-radius: 18px;
+  border-radius: 20px;
   background: linear-gradient(
     135deg,
     rgba(255, 75, 62, 0.35),
@@ -1029,11 +1039,11 @@ body.music-stats-overlay-open {
 }
 
 .anthem-content .wrapped-eyebrow {
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .anthem-title {
-  font-size: clamp(1.8rem, 4.5vw, 2.6rem);
+  font-size: clamp(32px, 4.5vw, 48px);
   font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 1.1;
@@ -1042,36 +1052,37 @@ body.music-stats-overlay-open {
 
 .anthem-artist {
   color: var(--msd-text-2);
-  font-size: 1.05rem;
-  margin-top: 8px;
+  font-size: 19px;
+  margin-top: 10px;
 }
 
 .anthem-stats {
   display: flex;
-  gap: 22px;
-  margin-top: 18px;
+  gap: 26px;
+  margin-top: 22px;
 }
 
 .anthem-stat {
   color: var(--msd-text-2);
-  font-size: 0.9rem;
+  font-size: 15px;
 }
 
 .anthem-stat strong {
   display: block;
   color: var(--msd-text);
-  font-size: 1.25rem;
+  font-size: 24px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
 .wrapped-btn {
-  margin-top: 22px;
-  padding: 11px 22px;
+  margin-top: 26px;
+  padding: 13px 26px;
   border-radius: 999px;
   border: 1px solid var(--msd-border-strong);
   background: transparent;
   color: var(--msd-text);
+  font-size: 16px;
   font-weight: 600;
   cursor: pointer;
 }
@@ -1090,27 +1101,27 @@ body.music-stats-overlay-open {
 /* Wrapped navigation */
 .wrapped-navigation {
   position: fixed;
-  bottom: 32px;
+  bottom: 36px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 18px;
+  gap: 20px;
   align-items: center;
   background: var(--msd-surface);
   border: 1px solid var(--msd-border);
-  padding: 10px 14px;
+  padding: 12px 16px;
   border-radius: 999px;
-  min-width: 300px;
+  min-width: 340px;
   justify-content: space-between;
 }
 
 .wrapped-nav-btn {
-  padding: 9px 18px;
+  padding: 11px 22px;
   background: transparent;
   border: 1px solid transparent;
   border-radius: 999px;
   color: var(--msd-text-2);
-  font-size: 0.88rem;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
   transition:
@@ -1140,13 +1151,13 @@ body.music-stats-overlay-open {
 
 .wrapped-dots {
   display: flex;
-  gap: 6px;
+  gap: 7px;
   align-items: center;
 }
 
 .wrapped-dot {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.22);
   transition:
@@ -1156,27 +1167,27 @@ body.music-stats-overlay-open {
 
 .wrapped-dot.active {
   background: var(--msd-accent);
-  transform: scale(1.25);
+  transform: scale(1.3);
 }
 
 .wrapped-close {
   position: fixed;
-  top: 24px;
-  right: 24px;
+  top: 26px;
+  right: 26px;
 }
 
 /* ─── Notification ───────────────────────────────────────────────────── */
 
 .music-stats-notification {
   position: fixed;
-  bottom: 30px;
+  bottom: 32px;
   left: 50%;
   transform: translateX(-50%) translateY(80px);
   background: #232326;
   color: #f1f1f1;
-  padding: 12px 24px;
+  padding: 14px 28px;
   border-radius: 999px;
-  font-size: 0.9rem;
+  font-size: 15px;
   font-weight: 500;
   border: 1px solid rgba(255, 255, 255, 0.14);
   z-index: 10001;
@@ -1193,7 +1204,7 @@ body.music-stats-overlay-open {
 
 /* ─── Responsive ─────────────────────────────────────────────────────── */
 
-@media (max-width: 860px) {
+@media (max-width: 900px) {
   .dashboard-grid {
     grid-template-columns: 1fr;
   }
@@ -1209,7 +1220,7 @@ body.music-stats-overlay-open {
   }
 
   .anthem-art {
-    max-width: 280px;
+    max-width: 300px;
     margin: 0 auto;
   }
 
@@ -1218,7 +1229,7 @@ body.music-stats-overlay-open {
   }
 
   .song-row {
-    grid-template-columns: 28px 44px 1fr auto;
+    grid-template-columns: 32px 48px 1fr auto;
   }
 
   .song-plays {
@@ -1226,7 +1237,7 @@ body.music-stats-overlay-open {
   }
 
   .wrapped-navigation {
-    bottom: 18px;
+    bottom: 20px;
     min-width: 0;
     width: calc(100% - 32px);
   }

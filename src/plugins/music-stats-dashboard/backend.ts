@@ -1,8 +1,6 @@
-import type { BrowserWindow, IpcMain } from 'electron';
 // CRITICAL: Use "import type" so nothing Node-only is bundled for the browser
 import type { StatsDatabase } from './database';
 import type { RemotePlayItem, TakeoutPlay } from './device-history';
-import type { SongInfo } from '@/providers/song-info';
 import type {
   PlayRecord,
   RankedArtist,
@@ -11,6 +9,8 @@ import type {
   StatsData,
   StatsRange,
 } from './types';
+import type { SongInfo } from '@/providers/song-info';
+import type { BrowserWindow, IpcMain } from 'electron';
 
 // Define channels statically to ensure we can clean them up reliably
 const IPC_CHANNELS = {
@@ -129,7 +129,7 @@ export class StatsBackend {
     const crypto = (await import('node:crypto')).default;
     const { StatsDatabase } = await import('./database');
     const { registerCallback, SongInfoEvent } = await import(
-      '@/providers/song-info'
+      '@/providers/song-info',
     );
 
     const dbPath = path.join(app.getPath('userData'), 'music-stats.json');
@@ -282,7 +282,7 @@ export class StatsBackend {
 
     // The streak is derived from the records themselves in computeStats,
     // so plays synced from other devices count toward it too.
-    this.db.addPlayRecord(record).catch(console.error);
+    this.db.addPlayRecord(record);
   }
 
   // ─── IPC ──────────────────────────────────────────────────────────────
@@ -301,9 +301,9 @@ export class StatsBackend {
       ipcMain.removeHandler(channel);
     }
 
-    ipcMain.handle(IPC_CHANNELS.GET_STATS, async (_, range?: StatsRange) => {
+    ipcMain.handle(IPC_CHANNELS.GET_STATS, (_, range?: StatsRange) => {
       if (!this.db) return null;
-      return await this.computeStats(range ?? 'all');
+      return this.computeStats(range ?? 'all');
     });
 
     ipcMain.handle(IPC_CHANNELS.PLAY_SONG, (_, videoId: string) => {
@@ -319,9 +319,9 @@ export class StatsBackend {
       return true;
     });
 
-    ipcMain.handle(IPC_CHANNELS.EXPORT, async () => {
+    ipcMain.handle(IPC_CHANNELS.EXPORT, () => {
       if (!this.db) return null;
-      return await this.db.exportData();
+      return this.db.exportData();
     });
 
     ipcMain.handle(IPC_CHANNELS.IMPORT, async (_, jsonData: string) => {
@@ -407,9 +407,9 @@ export class StatsBackend {
   private rangeStart(range: StatsRange, now: Date): number | undefined {
     switch (range) {
       case 'week':
-        return now.getTime() - 7 * 86400000;
+        return now.getTime() - (7 * 86400000);
       case 'month':
-        return now.getTime() - 30 * 86400000;
+        return now.getTime() - (30 * 86400000);
       case 'year':
         return new Date(now.getFullYear(), 0, 1).getTime();
       case 'all':
@@ -417,7 +417,7 @@ export class StatsBackend {
     }
   }
 
-  private async computeStats(range: StatsRange): Promise<StatsData> {
+  private computeStats(range: StatsRange): StatsData {
     if (!this.db) throw new Error('DB not initialized');
 
     const revision = this.db.getRevision();
@@ -425,7 +425,7 @@ export class StatsBackend {
     if (cached && cached.revision === revision) return cached.stats;
 
     const now = new Date();
-    const allRecords = await this.db.getPlayRecords(); // chronological
+    const allRecords = this.db.getPlayRecords(); // chronological
     const start = this.rangeStart(range, now);
     const records =
       start === undefined
@@ -603,7 +603,7 @@ export class StatsBackend {
     const trendDays = range === 'week' ? 7 : 30;
     const dailyTrend: StatsData['dailyTrend'] = [];
     for (let i = trendDays - 1; i >= 0; i--) {
-      const day = new Date(now.getTime() - i * 86400000);
+      const day = new Date(now.getTime() - (i * 86400000));
       const key = toLocalDateKey(day);
       dailyTrend.push({
         date: key,
@@ -743,8 +743,9 @@ export class StatsBackend {
   }
 
   /** `songId|localDay` keys for records at/after `since` — the dedupe set. */
-  private async songDayKeys(since?: number): Promise<Set<string>> {
-    const records = await this.db.getPlayRecords(since);
+  private songDayKeys(since?: number): Set<string> {
+    if (!this.db) return new Set();
+    const records = this.db.getPlayRecords(since);
     return new Set(
       records.map(
         (r) => `${r.songId}|${toLocalDateKey(new Date(r.timestamp))}`,
@@ -780,7 +781,7 @@ export class StatsBackend {
           ? Math.max(60, (now.getTime() - this.lastHistoryPollTime) / 1000)
           : 0;
       // The feed only resolves about a week back; dedupe over a bit more.
-      const seen = await this.songDayKeys(now.getTime() - 9 * 86400000);
+      const seen = this.songDayKeys(now.getTime() - (9 * 86400000));
       const newRecords: PlayRecord[] = [];
       const liveItems: Array<{ item: RemotePlayItem; duration: number }> = [];
 
@@ -852,7 +853,7 @@ export class StatsBackend {
         newRecords.push(toRecord(item, duration, listened, true, todayKey));
       }
 
-      await this.db.addPlayRecords(newRecords);
+      this.db.addPlayRecords(newRecords);
       this.historySeeded = true;
       this.lastHistoryPollTime = now.getTime();
       await this.setConfig({
@@ -890,7 +891,7 @@ export class StatsBackend {
 
     try {
       const { createInnertube, parseTakeout } = await import(
-        './device-history'
+        './device-history',
       );
       const plays = parseTakeout(jsonText);
       if (!plays.length) {
@@ -900,9 +901,9 @@ export class StatsBackend {
         };
       }
 
-      const seen = await this.songDayKeys();
+      const seen = this.songDayKeys();
       const knownDurations = new Map<string, number>();
-      for (const record of await this.db.getPlayRecords()) {
+      for (const record of this.db.getPlayRecords()) {
         if (record.totalDuration > 0) {
           knownDurations.set(record.songId, record.totalDuration);
         }
@@ -998,7 +999,7 @@ export class StatsBackend {
         });
       }
 
-      await this.db.addPlayRecords(newRecords);
+      this.db.addPlayRecords(newRecords);
       return {
         ok: true,
         message: `Imported ${newRecords.length} play${newRecords.length === 1 ? '' : 's'} from Takeout${skipCount > 0 ? ` (${skipCount} counted as skips)` : ''}.`,
@@ -1023,7 +1024,7 @@ export class StatsBackend {
 
   // ─── Lifecycle ────────────────────────────────────────────────────────
 
-  async onConfigChange(newConfig: StatsConfig) {
+  onConfigChange(newConfig: StatsConfig) {
     if (newConfig.cloudSyncEnabled) {
       this.startSyncTimer();
     } else {
@@ -1124,7 +1125,7 @@ export class StatsBackend {
         const created = await this.createDriveFile(
           accessToken,
           net,
-          await this.db.exportData(),
+          this.db.exportData(),
         );
         await this.setConfig({
           cloudSyncFileId: created.id,
@@ -1158,7 +1159,7 @@ export class StatsBackend {
           accessToken,
           net,
           fileId,
-          await this.db.exportData(),
+          this.db.exportData(),
         );
       }
 
@@ -1222,7 +1223,7 @@ export class StatsBackend {
 
     this.sessionAccessToken = json.access_token;
     this.sessionAccessTokenExpiry =
-      Date.now() + (json.expires_in ?? 3600) * 1000 - 60000;
+      Date.now() + ((json.expires_in ?? 3600) * 1000) - 60000;
     return json.access_token;
   }
 
@@ -1232,7 +1233,8 @@ export class StatsBackend {
     shell: Electron.Shell,
     net: Electron.Net,
   ) {
-    if (!config.cloudSyncClientId) {
+    const clientId = config.cloudSyncClientId;
+    if (!clientId) {
       return { ok: false, message: 'Missing Google OAuth Client ID.' };
     }
 
@@ -1286,7 +1288,7 @@ export class StatsBackend {
                 'Content-Type': 'application/x-www-form-urlencoded',
               },
               body: new URLSearchParams({
-                client_id: config.cloudSyncClientId,
+                client_id: clientId,
                 client_secret: config.cloudSyncClientSecret || '',
                 grant_type: 'authorization_code',
                 code,
@@ -1312,7 +1314,7 @@ export class StatsBackend {
           };
           this.sessionAccessToken = tokenJson.access_token || null;
           this.sessionAccessTokenExpiry =
-            Date.now() + (tokenJson.expires_in ?? 3600) * 1000 - 60000;
+            Date.now() + ((tokenJson.expires_in ?? 3600) * 1000) - 60000;
 
           if (!tokenJson.refresh_token) {
             await this.setConfig({
@@ -1356,7 +1358,7 @@ export class StatsBackend {
         redirectUri = `http://127.0.0.1:${port}/oauth2callback`;
 
         const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-        authUrl.searchParams.set('client_id', config.cloudSyncClientId);
+        authUrl.searchParams.set('client_id', clientId);
         authUrl.searchParams.set('redirect_uri', redirectUri);
         authUrl.searchParams.set('response_type', 'code');
         authUrl.searchParams.set('scope', DRIVE_SCOPE);

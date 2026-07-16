@@ -1,11 +1,11 @@
 import prompt from 'custom-electron-prompt';
 
-import promptOptions from '@/providers/prompt-options';
 import { t } from '@/i18n';
+import promptOptions from '@/providers/prompt-options';
 
-import type { MenuContext } from '@/types/contexts';
-import type { MenuTemplate } from '@/menu';
 import type { StatsConfig } from './types';
+import type { MenuTemplate } from '@/menu';
+import type { MenuContext } from '@/types/contexts';
 
 export default async (ctx: MenuContext<StatsConfig>): Promise<MenuTemplate> => {
   const config = await ctx.getConfig();
@@ -196,13 +196,13 @@ export default async (ctx: MenuContext<StatsConfig>): Promise<MenuTemplate> => {
         },
         {
           label: t('plugins.music-stats-dashboard.menu.export', 'Export Stats'),
-          click: async () => {
+          click: () => {
             ctx.window.webContents.send('music-stats:export');
           },
         },
         {
           label: t('plugins.music-stats-dashboard.menu.import', 'Import Stats'),
-          click: async () => {
+          click: () => {
             ctx.window.webContents.send('music-stats:import');
           },
         },

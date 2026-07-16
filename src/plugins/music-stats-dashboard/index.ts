@@ -1,5 +1,5 @@
-import { createPlugin } from '@/utils';
 import { t } from '@/i18n';
+import { createPlugin } from '@/utils';
 
 import style from './ui/styles.css?inline';
 
@@ -48,8 +48,8 @@ export default createPlugin({
       await backend.initialize();
       console.log('[Music Stats Dashboard] Backend initialized');
     },
-    onConfigChange: async (newConfig) => {
-      await backend?.onConfigChange(newConfig);
+    onConfigChange: (newConfig) => {
+      backend?.onConfigChange(newConfig);
     },
     stop: async () => {
       if (backend) {

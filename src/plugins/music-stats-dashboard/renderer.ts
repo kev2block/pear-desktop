@@ -1,6 +1,5 @@
-import type { RendererContext } from '@/types/contexts';
-
 import type { StatsData, StatsRange } from './types';
+import type { RendererContext } from '@/types/contexts';
 
 let ipc: RendererContext<{ enabled: boolean }>['ipc'] | null = null;
 let keydownHandler: ((event: KeyboardEvent) => void) | null = null;
@@ -38,12 +37,17 @@ function setupIpcListeners() {
 
   ipc?.on('music-stats:export', async () => {
     try {
-      const data = await ipc?.invoke('music-stats:export-data');
+      const data = (await ipc?.invoke('music-stats:export-data')) as
+        | string
+        | null;
       if (!data) {
         showNotification('Nothing to export yet');
         return;
       }
-      const saved = await ipc?.invoke('music-stats:save-export-file', data);
+      const saved = (await ipc?.invoke(
+        'music-stats:save-export-file',
+        data,
+      )) as boolean;
       if (saved) showNotification('Stats exported successfully');
     } catch (error) {
       console.error('[Music Stats] Export failed:', error);
@@ -53,7 +57,9 @@ function setupIpcListeners() {
 
   ipc?.on('music-stats:import', async () => {
     try {
-      const data = await ipc?.invoke('music-stats:load-import-file');
+      const data = (await ipc?.invoke('music-stats:load-import-file')) as
+        | string
+        | null;
       if (data) {
         const result = (await ipc?.invoke('music-stats:import-data', data)) as {
           added: number;
@@ -89,7 +95,9 @@ function setupIpcListeners() {
 
   ipc?.on('music-stats:import-takeout', async () => {
     try {
-      const data = await ipc?.invoke('music-stats:load-import-file');
+      const data = (await ipc?.invoke('music-stats:load-import-file')) as
+        | string
+        | null;
       if (!data) return;
       showNotification('Importing Takeout history…');
       const result = (await ipc?.invoke(
@@ -197,7 +205,7 @@ function escapeHtml(value: string | number | null | undefined): string {
         '>': '&gt;',
         '"': '&quot;',
         "'": '&#39;',
-      })[ch],
+      })[ch] ?? ch,
   );
 }
 
@@ -257,7 +265,7 @@ function formatMinutes(minutes: number): string {
 async function playSong(videoId: string) {
   if (!ipc || !isVideoId(videoId)) return;
   try {
-    const ok = await ipc.invoke('music-stats:play-song', videoId);
+    const ok = (await ipc.invoke('music-stats:play-song', videoId)) as boolean;
     showNotification(ok ? 'Playing next' : 'Could not queue this song');
   } catch {
     showNotification('Could not queue this song');
@@ -317,7 +325,7 @@ function gridLines(
 ): string {
   const lines: string[] = [];
   for (const frac of [0, 0.5, 1]) {
-    const y = pad.t + (1 - frac) * (height - pad.t - pad.b);
+    const y = pad.t + ((1 - frac) * (height - pad.t - pad.b));
     lines.push(
       `<line class="msd-grid" x1="${pad.l}" y1="${y.toFixed(1)}" x2="${width - pad.r}" y2="${y.toFixed(1)}" />`,
       `<text class="msd-axis-label" x="${pad.l - 8}" y="${(y + 4).toFixed(1)}" text-anchor="end">${Math.round(maxValue * frac)}</text>`,
@@ -341,8 +349,8 @@ function createClockChart(hourlyData: number[]): string {
   const max = Math.max(...hourlyData, 1);
 
   const points: ChartPoint[] = hourlyData.map((minutes, hour) => ({
-    x: pad.l + (hour / 23) * plotW,
-    y: pad.t + (1 - minutes / max) * plotH,
+    x: pad.l + ((hour / 23) * plotW),
+    y: pad.t + ((1 - (minutes / max)) * plotH),
     tip: `${`${hour}`.padStart(2, '0')}:00 – ${`${(hour + 1) % 24}`.padStart(2, '0')}:00 · ${Math.round(minutes)} min`,
   }));
 
@@ -366,7 +374,7 @@ function createClockChart(hourlyData: number[]): string {
 
   const ticks = [0, 6, 12, 18, 23]
     .map((hour) => {
-      const x = pad.l + (hour / 23) * plotW;
+      const x = pad.l + ((hour / 23) * plotW);
       return `<text class="msd-axis-label" x="${x.toFixed(1)}" y="${height - 8}" text-anchor="middle">${`${hour}`.padStart(2, '0')}:00</text>`;
     })
     .join('');
@@ -404,17 +412,17 @@ function createTrendChart(trend: StatsData['dailyTrend']): string {
   const max = Math.max(...trend.map((d) => d.minutes), 1);
   const n = trend.length;
   const gap = 2;
-  const barW = Math.max(2, plotW / n - gap);
+  const barW = Math.max(2, (plotW / n) - gap);
   const radius = Math.min(4, barW / 2);
   const baseline = height - pad.b;
 
   const bars = trend
     .map((day, i) => {
-      const x = pad.l + (i / n) * plotW + gap / 2;
+      const x = pad.l + ((i / n) * plotW) + (gap / 2);
       const h = (day.minutes / max) * plotH;
       const y = baseline - h;
       const tip = `${formatDateKey(day.date, false)} · ${day.minutes} min`;
-      const centerX = x + barW / 2;
+      const centerX = x + (barW / 2);
       // Bars are anchored flat on the baseline with rounded data-ends on top.
       const bar =
         day.minutes > 0
@@ -439,7 +447,7 @@ function createTrendChart(trend: StatsData['dailyTrend']): string {
     .map((day, i) => {
       const isLast = i === n - 1;
       if (i % tickEvery !== 0 && !isLast) return '';
-      const x = pad.l + (i / n) * plotW + gap / 2 + barW / 2;
+      const x = pad.l + ((i / n) * plotW) + (gap / 2) + (barW / 2);
       return `<text class="msd-axis-label" x="${x.toFixed(1)}" y="${height - 8}" text-anchor="middle">${escapeHtml(formatDateKey(day.date, false))}</text>`;
     })
     .join('');
@@ -468,7 +476,7 @@ function bindChartTooltips(root: HTMLElement) {
       const rect = svg.getBoundingClientRect();
       tooltip.textContent = target.dataset.tip ?? '';
       tooltip.style.left = `${rect.width * Number(target.dataset.x || 0)}px`;
-      tooltip.style.top = `${rect.height * Number(target.dataset.y || 0) - 10}px`;
+      tooltip.style.top = `${(rect.height * Number(target.dataset.y || 0)) - 10}px`;
       tooltip.classList.add('show');
     });
 
@@ -526,6 +534,7 @@ async function showDashboard() {
 
   const body = overlay.querySelector<HTMLElement>('.dashboard-body');
   const renderBody = (data: StatsData) => {
+    if (!body) return;
     body.innerHTML = renderDashboardBody(data);
     bindChartTooltips(body);
     bindPlayButtons(body);
@@ -1121,7 +1130,7 @@ function createChronotypeTimeline(
   const maxMinutes = Math.max(...hourlyData, 1);
   const bars = hourlyData
     .map((minutes, hour) => {
-      const height = Math.max(4, (minutes / maxMinutes) * 72);
+      const height = Math.max(5, (minutes / maxMinutes) * 96);
       const label = `${hour}`.padStart(2, '0');
       return `
         <div class="chronotype-bar${hour === peakHour ? ' peak' : ''}"

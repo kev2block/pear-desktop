@@ -37,7 +37,7 @@ export async function createInnertube(
   window: BrowserWindow,
 ): Promise<Innertube> {
   const { Innertube: InnertubeClass, UniversalCache } = await import(
-    'youtubei.js'
+    'youtubei.js',
   );
   const { getNetFetchAsFetch } = await import('@/plugins/utils/main');
 
@@ -184,7 +184,7 @@ export function parseDurationText(text?: string): number {
     .split(':')
     .map((p) => Number(p));
   if (!parts.length || parts.some((p) => !Number.isFinite(p))) return 0;
-  return parts.reduce((total, part) => total * 60 + part, 0);
+  return parts.reduce((total, part) => (total * 60) + part, 0);
 }
 
 const WEEKDAYS = [
