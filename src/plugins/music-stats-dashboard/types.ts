@@ -78,6 +78,39 @@ export interface StatsData {
     artist: string;
     minutes: number;
   }>;
+  /** Share of assessed plays that were listened to (near-)completion. */
+  completionRate: number;
+  /** Artists first heard within the selected range. */
+  newArtists: {
+    count: number;
+    topName?: string;
+    topMinutes?: number;
+    topImageUrl?: string;
+  };
+  /** The song with the most qualified plays on a single day. */
+  binge?: {
+    songId: string;
+    title: string;
+    artist: string;
+    date: string; // local YYYY-MM-DD
+    plays: number;
+    imageUrl?: string;
+  };
+  topAlbums: Array<{
+    name: string;
+    artist: string;
+    plays: number;
+    minutes: number;
+    imageUrl?: string;
+  }>;
+  /** Top song per (meteorological) season within the range, calendar order. */
+  seasons: Array<{
+    season: 'Winter' | 'Spring' | 'Summer' | 'Autumn';
+    title: string;
+    artist: string;
+    plays: number;
+    imageUrl?: string;
+  }>;
   skipStats: Array<{
     songId: string;
     title: string;

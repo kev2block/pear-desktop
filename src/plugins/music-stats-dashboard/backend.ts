@@ -78,6 +78,17 @@ function toLocalMonthKey(date: Date): string {
   return toLocalDateKey(date).slice(0, 7);
 }
 
+type Season = 'Winter' | 'Spring' | 'Summer' | 'Autumn';
+const SEASON_ORDER: Season[] = ['Winter', 'Spring', 'Summer', 'Autumn'];
+
+/** Meteorological season of a 0-based month (Dec–Feb = Winter, …). */
+function seasonOfMonth(month: number): Season {
+  if (month === 11 || month <= 1) return 'Winter';
+  if (month <= 4) return 'Spring';
+  if (month <= 7) return 'Summer';
+  return 'Autumn';
+}
+
 /** Noon (local) of a YYYY-MM-DD key — neutral time for day-only records. */
 function noonOfDayKey(dayKey: string): number {
   const [y, m, d] = dayKey.split('-').map(Number);
@@ -465,11 +476,31 @@ export class StatsBackend {
       string,
       Map<string, { name: string; minutes: number }>
     >();
+    // songId|day → plays, for "The Binge" (most plays of one song in a day).
+    const songDayPlays = new Map<string, number>();
+    const albumMap = new Map<
+      string,
+      {
+        name: string;
+        artist: string;
+        plays: number;
+        minutes: number;
+        imageUrl?: string;
+      }
+    >();
+    const seasonSongs = new Map<
+      string,
+      Map<
+        string,
+        { title: string; artist: string; plays: number; imageUrl?: string }
+      >
+    >();
 
     let totalSeconds = 0;
     let totalPlays = 0;
     let totalSkips = 0;
     let assessedRecords = 0;
+    let completedAssessed = 0;
 
     for (const record of records) {
       const qualified = isQualified(record);
@@ -478,10 +509,13 @@ export class StatsBackend {
       totalSeconds += record.durationListened;
       if (qualified) totalPlays++;
       if (record.skipped) totalSkips++;
-      // Skip inference needs real timing (local plays, Takeout gaps,
-      // live-window syncs) — day-level records can't be judged, so they
-      // don't dilute the skip rate.
-      if (!record.approximateTime) assessedRecords++;
+      // Skip/completion inference needs real timing (local plays, Takeout
+      // gaps, live-window syncs) — day-level records can't be judged, so
+      // they don't dilute those rates.
+      if (!record.approximateTime) {
+        assessedRecords++;
+        if (record.completed) completedAssessed++;
+      }
 
       const song = songMap.get(record.songId) ?? {
         title: record.songTitle,
@@ -528,6 +562,44 @@ export class StatsBackend {
 
       const dayKey = toLocalDateKey(when);
       dailyMap.set(dayKey, (dailyMap.get(dayKey) ?? 0) + minutes);
+
+      if (qualified) {
+        const bingeKey = `${record.songId}|${dayKey}`;
+        songDayPlays.set(bingeKey, (songDayPlays.get(bingeKey) ?? 0) + 1);
+      }
+
+      if (record.albumName) {
+        const albumKey = `${record.albumName}|${record.artistId}`;
+        const album = albumMap.get(albumKey) ?? {
+          name: record.albumName,
+          artist: record.artistName,
+          plays: 0,
+          minutes: 0,
+          imageUrl: undefined as string | undefined,
+        };
+        if (qualified) album.plays++;
+        album.minutes += minutes;
+        album.imageUrl ||= record.thumbnailUrl;
+        albumMap.set(albumKey, album);
+      }
+
+      if (qualified) {
+        const season = seasonOfMonth(when.getMonth());
+        let seasonMap = seasonSongs.get(season);
+        if (!seasonMap) {
+          seasonMap = new Map();
+          seasonSongs.set(season, seasonMap);
+        }
+        const seasonSong = seasonMap.get(record.songId) ?? {
+          title: record.songTitle,
+          artist: record.artistName,
+          plays: 0,
+          imageUrl: undefined as string | undefined,
+        };
+        seasonSong.plays++;
+        seasonSong.imageUrl ||= record.thumbnailUrl;
+        seasonMap.set(record.songId, seasonSong);
+      }
 
       const monthKey = toLocalMonthKey(when);
       let monthMap = monthlyArtists.get(monthKey);
@@ -598,6 +670,88 @@ export class StatsBackend {
       .sort((a, b) => b[1].skips - a[1].skips)
       .slice(0, 10)
       .map(([songId, data]) => ({ songId, ...data }));
+
+    // The Binge: most qualified plays of one song on a single day.
+    let binge: StatsData['binge'];
+    for (const [key, plays] of songDayPlays) {
+      if (plays < 2) continue;
+      if (!binge || plays > binge.plays) {
+        const [songId, date] = [
+          key.slice(0, key.indexOf('|')),
+          key.slice(key.indexOf('|') + 1),
+        ];
+        const song = songMap.get(songId);
+        if (!song) continue;
+        binge = {
+          songId,
+          title: song.title,
+          artist: song.artist,
+          date,
+          plays,
+          imageUrl: coverUrl(songId, song.imageUrl),
+        };
+      }
+    }
+
+    const topAlbums: StatsData['topAlbums'] = [...albumMap.values()]
+      .sort((a, b) => b.minutes - a.minutes)
+      .slice(0, 5)
+      .map((album) => ({
+        name: album.name,
+        artist: album.artist,
+        plays: album.plays,
+        minutes: Math.round(album.minutes),
+      imageUrl: album.imageUrl,
+      }));
+
+    const seasons: StatsData['seasons'] = SEASON_ORDER.flatMap((season) => {
+      const seasonMap = seasonSongs.get(season);
+      if (!seasonMap) return [];
+      let topId = '';
+      let top:
+        | { title: string; artist: string; plays: number; imageUrl?: string }
+        | undefined;
+      for (const [songId, song] of seasonMap) {
+        if (!top || song.plays > top.plays) {
+          top = song;
+          topId = songId;
+        }
+      }
+      if (!top) return [];
+      return [
+        {
+          season,
+          title: top.title,
+          artist: top.artist,
+          plays: top.plays,
+          imageUrl: coverUrl(topId, top.imageUrl),
+        },
+      ];
+    });
+
+    // The Discovery: artists whose first-ever play falls inside the range.
+    const firstSeen = new Map<string, number>();
+    for (const record of allRecords) {
+      if (!firstSeen.has(record.artistId)) {
+        firstSeen.set(record.artistId, record.timestamp);
+      }
+    }
+    let newArtistCount = 0;
+    let topNew:
+      | { name: string; minutes: number; imageUrl?: string }
+      | undefined;
+    for (const [artistId, artist] of artistMap) {
+      const seenAt = firstSeen.get(artistId) ?? 0;
+      if (start !== undefined && seenAt < start) continue;
+      newArtistCount++;
+      if (!topNew || artist.minutes > topNew.minutes) {
+        topNew = {
+          name: artist.name,
+          minutes: artist.minutes,
+          imageUrl: artist.imageUrl,
+        };
+      }
+    }
 
     // Trend: minutes per day over the visible window (7 for week, else 30).
     const trendDays = range === 'week' ? 7 : 30;
@@ -674,6 +828,19 @@ export class StatsBackend {
         assessedRecords > 0
           ? Math.min(100, Math.round((totalSkips / assessedRecords) * 100))
           : 0,
+      completionRate:
+        assessedRecords > 0
+          ? Math.min(100, Math.round((completedAssessed / assessedRecords) * 100))
+          : 0,
+      newArtists: {
+        count: newArtistCount,
+        topName: topNew?.name,
+        topMinutes: topNew ? Math.round(topNew.minutes) : undefined,
+        topImageUrl: topNew?.imageUrl,
+      },
+      binge,
+      topAlbums,
+      seasons,
     };
 
     this.statsCache.set(range, { revision, stats });
